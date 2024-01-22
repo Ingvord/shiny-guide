@@ -28,7 +28,7 @@ These tests, conducted in isolation on a single Node.js instance, served as a ba
 
 Before going further with scaling my Node.js app in a [cluster](bin/nodejs_cluster.sh), I checked a baseline with the NGINX's most powerful feature – serving static content. This test reaffirmed NGINX's prowess as a high-performance static file server, delivering an outstanding rate of 200K requests per second even against `wrk -R250000 -t200 -c1000`. This benchmark sets a high bar and offered a clear performance reference point against which to measure the dynamic content serving capabilities of our Node.js application:
 
-![](performance_analysis_rps.png)
+![](figures/performance_analysis_rps.png)
 
 ## NGINX as a Reverse Proxy for Node.js Cluster
 
