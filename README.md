@@ -52,6 +52,10 @@ This last figure shows CPU load while performing various tests. With NGINX and N
 
 These insights were instrumental in understanding the interplay between NGINX and Node.js in a clustered environment and set the stage for further optimization and capacity planning in my project. All the relevant files are presented in this GitHub repository.
 
+## P.S.
 
+Interestings fact, if I replace express with vanilla `http` module, see e.g. [simple.js](simple.js) the overall performanc of a single instance increases dramatically:
 
+![](figures/simple_rps_vs_threads.png)
 
+This stresses my idea of reducing number of libraries and frameworks being a good thing :)
