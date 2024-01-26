@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>flamebearer</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<style>
+    html, body { height: 100%; }
+    body { font: 16px "Helvetica Neue", sans-serif; margin: 0; }
+    body.hover { background: #cfc; }
+    h1 { font-size: 30px; margin: 30px 30px 15px; }
+    h1 a { color: black; text-decoration: none; }
+    h1 a:hover { text-decoration: underline; }
+    #fire-icon { fill: #f53; width: 26px; height: 26px; vertical-align: -1px; }
+    #intro { margin: 0 30px; }
+    code { font-size: 13px; color: #444; }
+    code span { color: #aaa; }
+    #canvas { width: 100%; }
+    #controls { display: none; }
+    #search { margin-right: 10px; }
+    #highlight { position: absolute; pointer-events: none; background: #ffffff40; }
+    .loaded #intro { display: none; }
+    .loaded #header { display: flex; align-items: center; flex-flow: row wrap; padding: 7px 10px; }
+    .loaded h1 { font-size: 22px; margin: 0 auto 0 0; flex-shrink: 0; }
+    .loaded #fire-icon { width: 20px; height: 20px; }
+    .loaded #controls { display: block; flex-shrink: 0; }
+    #tooltip { position: absolute; pointer-events: none; background: #ffffff; white-space: nowrap; box-shadow: 1px 2px 4px 0px rgba(0,0,0,0.3); border-radius: 2px; padding: 3px 5px; font: 12px Tahoma, sans-serif; display: none; }
+    #tooltip .path { color: #888; font-size: 11px; }
+    #tooltip .time { color: #4a4; }
+</style>
+</head>
+<body>
+
+<div id="header">
+    <h1><svg id="fire-icon" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 15 15" style="enable-background:new 0 0 15 15;" xml:space="preserve"><path d="M7.5,0.5L5,4.5l-1.5-2 C2.9452,3.4753,0.8036,5.7924,0.8036,8.3036C0.8036,12.002,3.8017,15,7.5,15s6.6964-2.998,6.6964-6.6964 c0-2.5112-2.1416-4.8283-2.6964-5.8036l-1.5,2L7.5,0.5z M7.5,7c0,0,2.5,2.5618,2.5,4.5c0,0.8371-0.8259,2-2.5,2S5,12.3371,5,11.5 C5,9.6283,7.5,7,7.5,7z"/></svg> <a href="https://github.com/mapbox/flamebearer">flamebearer</a></h1>
+    <div id="controls">
+        <input id="search" placeholder="Search..." />
+        <button id="reset">Reset view</button>
+    </div>
+</div>
+<div id="highlight"></div>
+<div id="tooltip"></div>
+<div id="intro"><!--  --></div>
+<canvas id="canvas" height="0"></canvas>
+
+<!--  -->
+<script>'use strict';
+
+const introEl = document.getElementById('intro');
+const searchEl = document.getElementById('search');
+const highlightEl = document.getElementById('highlight');
+const tooltipEl = document.getElementById('tooltip');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let names, levels, numTicks;
+
+names = ["(unknown)","(lib) /home/ingvord/.nvm/versions/node/v16.20.2/bin/node","(unknown)","(C++) fwrite@@GLIBC_2.2.5","(C++) __write@@GLIBC_2.2.5","~(anonymous) node:internal/main/run_main_module:1:1","~nativeModuleRequire node:internal/bootstrap/loaders:353:29","~compileForInternalLoader node:internal/bootstrap/loaders:316:27","~prepareMainThreadExecution node:internal/bootstrap/pre_execution:29:36","~refreshRuntimeOptions node:internal/bootstrap/pre_execution:99:31","~patchProcessObject node:internal/bootstrap/pre_execution:103:28","~resolve node:path:1091:10","(C++) _IO_file_xsputn@@GLIBC_2.2.5","~initializeGlobalConsole node:internal/console/constructor:687:33","~value node:internal/console/constructor:230:20","(C++) std::ostream::sentry::sentry(std::ostream&)@@GLIBCXX_3.4","~setupInspectorHooks node:internal/bootstrap/pre_execution:329:29","~setupWarningHandler node:internal/bootstrap/pre_execution:168:29","~addListener node:events:604:58","~_addListener node:events:541:22","~initializeReport node:internal/bootstrap/pre_execution:278:26","~initializeSourceMapsHandlers node:internal/bootstrap/pre_execution:560:38","~(anonymous) node:internal/source_map/source_map_cache:1:1","~initializeCJSLoader node:internal/bootstrap/pre_execution:521:29","~(anonymous) node:internal/modules/cjs/loader:1:1","~(anonymous) node:internal/process/esm_loader:1:1","~(anonymous) node:internal/modules/esm/loader:1:1","~(anonymous) node:internal/modules/esm/module_map:1:1","~(anonymous) node:internal/modules/esm/resolve:1:1","~(anonymous) node:internal/modules/esm/get_format:1:1","~(anonymous) node:internal/modules/esm/fetch_module:1:1","~(anonymous) node:net:1:1","~internalBinding node:internal/bootstrap/loaders:171:45","~get BlockList node:net:1957:16","~(anonymous) node:internal/blocklist:1:1","~(anonymous) node:internal/modules/esm/load:1:1","~(anonymous) node:internal/fs/promises:1:1","~(anonymous) node:internal/fs/rimraf:1:1","(C++) std::basic_ostream<char, std::char_traits<char> >& std::__ostream_insert<char, std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*, long)@@GLIBCXX_3.4.9","~Module._initPaths node:internal/modules/cjs/loader:1326:29","~executeUserEntryPoint node:internal/modules/run_main:74:31","~resolveMainPath node:internal/modules/run_main:15:25","~Module._findPath node:internal/modules/cjs/loader:568:28","~toRealPath node:internal/modules/cjs/loader:467:20","~realpathSync node:fs:2455:22","(C++) __libc_malloc@@GLIBC_2.2.5","~shouldUseESMLoader node:internal/modules/run_main:30:28","~readPackageScope node:internal/modules/cjs/loader:395:26","~readPackage node:internal/modules/cjs/loader:353:21","~read node:internal/modules/package_json_reader:16:14","~Module._load node:internal/modules/cjs/loader:839:24","~Module._resolveFilename node:internal/modules/cjs/loader:937:35","~Module._resolveLookupPaths node:internal/modules/cjs/loader:741:38","~logger node:internal/util/debuglog:95:18","~debug node:internal/util/debuglog:76:15","~Module.load node:internal/modules/cjs/loader:1064:33","~Module._extensions..js node:internal/modules/cjs/loader:1207:37","~readFileSync node:fs:455:22","~tryReadSync node:fs:434:21","~Module._compile node:internal/modules/cjs/loader:1151:37","~wrapSafe node:internal/modules/cjs/loader:1111:18","~compileFunction node:vm:316:25","~(anonymous) ./simple.js:1:1","~require node:internal/modules/cjs/helpers:117:31","~Module.require node:internal/modules/cjs/loader:1092:36","~loadBuiltinModule node:internal/modules/cjs/helpers:50:27","~compileForPublicLoader node:internal/bootstrap/loaders:263:25","~(anonymous) node:http:1:1","~(anonymous) node:_http_client:1:1","~(anonymous) node:_http_common:1:1","~(anonymous) node:_http_outgoing:1:1","~(anonymous) node:_http_server:1:1","~createServer node:http:59:22","~Server.listen node:net:1544:35","~listenInCluster node:net:1501:25","~(anonymous) node:cluster:1:1","~(anonymous) node:internal/cluster/primary:1:1","~(anonymous) node:child_process:1:1","~(anonymous) node:internal/child_process:1:1","~(anonymous) node:dgram:1:1","~setupListenHandle node:net:1416:27","~defaultTriggerAsyncIdScope node:internal/async_hooks:455:36","~nextTick node:internal/process/task_queues:104:18","~processTicksAndRejections node:internal/process/task_queues:68:35","~emitBeforeScript node:internal/async_hooks:509:26","~emitListeningNT node:net:1494:25","~emit node:events:460:44","~onceWrapper node:events:622:21","~(anonymous) ./simple.js:44:21","~log node:internal/console/constructor:375:6","~value node:internal/console/constructor:336:20","~get node:internal/console/constructor:208:14","~getStdout node:internal/bootstrap/switches/is_main_thread:146:19","~createWritableStdioStream node:internal/bootstrap/switches/is_main_thread:45:35","~(anonymous) node:tty:1:1","~(anonymous) node:internal/tty:1:1","~WriteStream node:tty:85:21","~Socket node:net:317:16","~Duplex node:internal/streams/duplex:54:16","~Readable node:internal/streams/readable:181:18","~Writable node:internal/streams/writable:220:18","~WritableState node:internal/streams/writable:77:23","~addCleanup node:internal/bootstrap/switches/is_main_thread:140:20","~isBuildingSnapshot node:internal/v8/startup_snapshot:18:28","~value node:internal/console/constructor:271:20","~Writable.write node:internal/streams/writable:335:36","~_write node:internal/streams/writable:285:16","~writeOrBuffer node:internal/streams/writable:367:23","~Socket._write node:net:916:35","~Socket._writeGeneric node:net:879:42","~writeGeneric node:internal/stream_base_commons:147:22","(C++) epoll_pwait@@GLIBC_2.6","~onconnection node:net:1689:22","~connectionListener node:_http_server:482:28","~shift node:internal/fixed_queue:108:8","(C++) __mprotect@@GLIBC_PRIVATE","~endReadableNT node:internal/streams/readable:1351:23","~socketOnEnd node:_http_server:647:21","~parserOnHeadersComplete node:_http_common:77:33","~parserOnIncoming node:_http_server:897:26","~ServerResponse node:_http_server:189:24","~OutgoingMessage node:_http_outgoing:103:25","~assignSocket node:_http_server:279:62","~(anonymous) ./simple.js:6:34","~writeHead node:_http_server:309:19","~_storeHeader node:_http_outgoing:420:22","~utcDate node:internal/http:19:17","~cache node:internal/http:24:15","~setUnrefTimeout node:internal/timers:372:25","(C++) std::ostreambuf_iterator<char, std::char_traits<char> > std::num_put<char, std::ostreambuf_iterator<char, std::char_traits<char> > >::_M_insert_int<long>(std::ostreambuf_iterator<char, std::char_traits<char> >, std::ios_base&, char, long) const@@GLIBCXX_3.4","~end node:_http_outgoing:953:45","~write_ node:_http_outgoing:831:16","~Writable.uncork node:internal/streams/writable:343:37","~clearBuffer node:internal/streams/writable:531:21","~doWrite node:internal/streams/writable:400:17","~Socket._writev node:net:911:36","(lib) /usr/lib/x86_64-linux-gnu/libc.so.6","~afterWriteTick node:internal/streams/writable:484:24","~afterWrite node:internal/streams/writable:489:20","(lib) /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30","~callback node:internal/streams/writable:552:44","~onFinish node:_http_outgoing:948:18","~resOnFinish node:_http_server:833:21","~setStreamTimeout node:internal/stream_base_commons:237:26","~_send node:_http_outgoing:336:49","~_writeRaw node:_http_outgoing:371:19","~finish node:internal/streams/writable:747:16","~destroy node:internal/streams/destroy:32:17","~_destroy node:internal/streams/destroy:70:18","~Socket._destroy node:net:752:37","~getStderr node:internal/bootstrap/switches/is_main_thread:168:19","~Timeout.refresh node:internal/timers:210:37","~unrefActive node:internal/timers:317:21","~emitCloseNT node:internal/streams/destroy:126:21","~parserOnMessageComplete node:_http_common:146:33","~readStart node:_http_incoming:42:19","~parse node:url:167:37","~insert node:internal/timers:350:16","(C++) std::_Rb_tree_insert_and_rebalance(bool, std::_Rb_tree_node_base*, std::_Rb_tree_node_base*, std::_Rb_tree_node_base&)@@GLIBCXX_3.4","~slowCases node:internal/util:168:19","(C++) __read@@GLIBC_2.2.5","(C++) epoll_ctl@@GLIBC_2.3.2","processTicksAndRejections node:internal/process/task_queues:68:35","emit node:events:460:44","callback node:internal/streams/writable:552:44","endReadable node:internal/streams/readable:1341:21","(C++) accept4@@GLIBC_2.10","(C++) __pthread_mutex_init@GLIBC_2.2.5","_write node:internal/streams/writable:285:16","Readable.read node:internal/streams/readable:394:35","addListener node:events:604:58","(C++) pthread_cond_signal@@GLIBC_2.3.2","writevGeneric node:internal/stream_base_commons:122:23","(C++) writev@@GLIBC_2.2.5","parserOnIncoming node:_http_server:897:26","nextTick node:internal/process/task_queues:104:18","ReadableState node:internal/streams/readable:78:23","Readable.on node:internal/streams/readable:874:33","end node:_http_outgoing:953:45","_storeHeader node:_http_outgoing:420:22","parserOnHeadersComplete node:_http_common:77:33","endReadableNT node:internal/streams/readable:1351:23","(C++) __clock_gettime@@GLIBC_PRIVATE","resOnFinish node:_http_server:833:21","clearIncoming node:_http_server:794:23","writeHead node:_http_server:309:19","get node:internal/streams/writable:791:8","write_ node:_http_outgoing:831:16","_writeRaw node:_http_outgoing:371:19","(C++) __pthread_mutex_unlock@GLIBC_2.2.5","parse node:url:167:37","afterWriteTick node:internal/streams/writable:484:24","initAsyncResource node:internal/timers:157:27","(regexp) ^(\\/\\/?(?!\\/)[^?\\s]*)(\\?[^\\s]*)?$","flow node:internal/streams/readable:1008:14","onwrite node:internal/streams/writable:427:17","(C++) operator new[](unsigned long)@@GLIBCXX_3.4","get node:internal/streams/duplex:97:8","emitReadable_ node:internal/streams/readable:574:23","(regexp) ^[\\^_`a-zA-Z\\-0-9!#$%&'*+.|~]+$","OutgoingMessage node:_http_outgoing:103:25","urlParse node:url:151:18","onFinish node:_http_outgoing:948:18","Timeout node:internal/timers:167:17","processPromiseRejections node:internal/process/promises:211:34","Socket._writeGeneric node:net:879:42","get node:internal/bootstrap/node:92:8","onDestroy node:internal/streams/destroy:73:21","(anonymous) ./simple.js:6:34","resume_ node:internal/streams/readable:984:17","Socket._writev node:net:911:36","~processTimers node:internal/timers:487:25","~listOnTimeout node:internal/timers:507:25","~remove node:internal/linkedlist:16:16","(regexp) [^\\t\\x20-\\x7e\\x80-\\xff]","(C++) __pthread_mutex_lock@GLIBC_2.2.5","setStreamTimeout node:internal/stream_base_commons:237:26","Readable.resume node:internal/streams/readable:963:37","socketListenerWrap node:_http_server:1048:37","removeListener node:events:675:28","readStart node:_http_incoming:42:19","Socket.resume node:net:715:35","onError node:_http_incoming:429:17","doWrite node:internal/streams/writable:400:17","emitCloseNT node:internal/streams/destroy:126:21","EventEmitter.init node:events:337:29","clearBuffer node:internal/streams/writable:531:21","parserOnMessageComplete node:_http_common:146:33","readableAddChunk node:internal/streams/readable:236:26","insert node:internal/timers:350:16","getObserverType node:internal/perf/observe:126:25","removeAllListeners node:events:735:32","(lib) [vdso]","get node:_http_incoming:112:16","emitCloseNT node:_http_server:888:21","onParserExecute node:_http_server:679:25","onParserExecuteCommon node:_http_server:736:31","(C++) cfree@GLIBC_2.2.5","nop node:internal/streams/writable:73:13","setRequestTimeout node:_http_server:807:27","(C++) __pthread_rwlock_unlock@GLIBC_2.2.5","slowCases node:internal/util:168:19","arrayClone node:events:865:20","(regexp) ^\\/+|\\/+$","(C++) operator new(unsigned long)@@GLIBCXX_3.4","(C++) operator delete(void*)@@GLIBCXX_3.4","~insert node:internal/priority_queue:34:9","~percolateUp node:internal/priority_queue:73:14","matchKnownFields node:_http_incoming:276:26","_flushOutput node:_http_outgoing:1075:63","(C++) __pthread_rwlock_wrlock@GLIBC_2.2.5","(C++) _IO_setb@@GLIBC_2.2.5","(C++) getrusage@@GLIBC_2.2.5","clearRequestTimeout node:_http_server:819:29","(C++) __getpid@@GLIBC_2.2.5","nop node:_http_outgoing:92:13","~onStreamRead node:internal/stream_base_commons:167:22","~prepareStackTrace node:internal/errors:90:27","~errnoException node:internal/errors:589:26","Readable.push node:internal/streams/readable:227:35","~endReadable node:internal/streams/readable:1341:21","~onFinish node:internal/streams/writable:667:20","~Writable.end node:internal/streams/writable:596:34","(C++) shutdown@@GLIBC_2.2.5","~(anonymous) node:net:299:24","~freeParser node:_http_common:191:20"];
+levels = [[0,1,0,0,27134,2],[0,1,1,0,3130,1,0,375,2,0,1,3,0,13,4,0,102,5,0,1,38,0,34,45,0,24,83,0,306,111,0,5,112,0,13,118,0,221,136,0,7,139,0,1,154,0,3012,160,0,4,161,0,2282,162,0,14,166,0,1,167,0,24,171,0,1,174,0,17039,180,0,11,181,0,2,182,0,2,189,0,7,191,0,12,196,0,12,198,0,16,204,0,17,209,0,1,211,0,1,221,0,6,224,0,201,227,0,23,228,0,20,234,0,94,235,0,19,236,0,4,237,0,52,239,0,10,244,0,1,251,0,1,252,0,1,254,0,7,256,0,1,263,0,3,264],[3160,30,1,0,252,2,0,2,116,0,4,119,0,2,137,0,1,146,0,1,153,0,10,163,0,40,174,0,1,220,0,2,259,0,1,261,14,1,1,0,1,6,0,52,8,0,48,40,35,2,1,0,1,84,0,19,85,0,1,114,0,1,116,306,1,1,0,1,2,0,1,86,0,2,97,0,13,119,228,1,155,3214,136,1,0,154,2,0,1,163,0,29,169,0,205,181,0,2,184,0,1102,191,0,6,197,0,142,198,0,7,202,0,1,204,0,224,209,0,22,222,0,8,224,0,10,234,0,18,238,0,7,242,0,7,253,0,3,255,412,350,1,0,10,163,0,7,170,0,16088,174,0,102,176,0,17,177,0,19,186,0,23,200,0,14,208,0,3,216,0,2,218,0,17,230,0,11,233,0,4,249,79,1,212,118,8,1,0,12,175,0,1,221,0,69,228,75,7,1,0,55,236,88,1,1,0,5,2,0,1,258,1,3,2],[3178,10,1,0,2,115,2,32,1,0,160,2,0,56,163,0,1,170,0,1,177,0,2,1,0,4,2,0,2,138,0,1,147,0,1,1,0,1,1,0,9,2,0,2,1,0,38,2,0,1,221,0,2,2,0,1,1,14,1,4,0,1,7,0,2,1,0,1,9,0,8,10,0,1,16,0,2,17,0,1,20,0,2,21,0,35,23,0,9,41,0,1,46,0,38,50,35,1,1,0,1,3,0,1,1,0,19,86,0,1,1,0,1,86,307,1,2,0,1,113,0,1,2,0,1,98,0,2,2,0,9,86,0,1,120,0,1,122,228,1,1,3344,6,1,3,100,1,0,45,2,0,2,163,0,3,169,0,1,194,94,13,1,0,6,2,0,7,175,0,26,184,0,81,222,0,7,242,0,1,253,45,16,1,0,3,2,0,10,183,0,1023,202,0,5,238,0,2,255,21,17,1,0,23,165,0,87,169,28,18,1,0,16,165,0,170,169,25,5,1,1,9,1,780,13,1,0,1,115,0,2,240,0,1,250,408,421,1,0,163,2,0,7,163,0,98,170,0,51,177,0,29,178,0,9,179,0,39,186,0,7,190,0,88,200,0,14248,208,0,174,216,0,319,218,0,3,230,0,33,233,0,6,248,0,2,249,66,36,1,189,1,213,153,12,1,0,43,175,116,21,1,88,1,4,0,5,2,0,1,1,2,1,1,0,1,2],[3209,12,1,0,3,136,1,31,1,0,128,2,0,1,1,0,55,2,0,1,1,0,1,1,0,1,1,0,1,3,0,4,2,0,1,1,0,1,140,0,1,148,0,1,1,1,9,2,2,4,1,0,22,2,0,12,178,2,1,2,0,1,136,15,1,1,0,1,1,0,1,3,0,1,1,0,5,1,0,2,11,0,1,13,0,1,6,0,1,1,0,1,18,0,1,6,0,2,6,0,34,6,0,1,39,0,1,1,0,8,42,0,1,47,0,1,51,0,37,55,37,1,1,0,19,87,0,1,4,0,1,117,307,1,2,0,1,81,0,1,1,0,1,100,0,2,123,0,9,123,0,1,121,0,1,1,228,1,115,3452,1,1,0,3,1,0,13,2,0,1,117,0,26,164,0,1,165,0,1,169,0,1,1,0,1,2,3,1,169,107,5,1,0,1,207,51,22,1,0,41,175,67,2,1,0,3,163,15,66,1,0,5,175,0,872,183,0,15,184,0,7,197,0,8,217,0,7,219,0,38,229,84,23,1,0,48,165,89,23,1,0,120,165,1529,70,1,0,1,4,0,4,45,0,62,136,2,6,1,0,10,2,0,4,177,0,132,178,0,7,185,0,2,201,5,2,1,23,75,1,11,40,1,113,59,1,90,529,1,0,4,2,0,1,163,0,13127,178,0,220,179,0,7,187,0,1,188,0,261,190,0,8,223,169,5,1,144,175,1,21,8,1,0,7,248,109,1,1,189,1,1,182,22,1,0,4,206,226,4,1,0,1,2,0,1,4,3,1,265],[3242,8,1,0,4,2,0,1,136,0,1,139,2,24,1,0,100,2,0,2,176,1,2,1,0,53,2,4,2,2,0,1,124,0,1,130,0,1,139,0,1,141,0,1,149,2,2,1,0,7,2,4,2,1,0,3,1,0,18,2,0,1,179,0,12,2,2,1,2,16,1,1,2,1,1,0,3,3,0,2,4,0,2,1,0,1,14,0,1,7,0,1,15,0,1,19,0,1,7,0,2,7,0,34,7,0,1,11,0,1,1,0,8,43,0,1,48,0,1,52,0,1,1,0,36,56,38,19,88,1,1,1,307,1,2,0,1,1,0,1,1,0,1,101,0,2,130,0,4,1,0,2,124,0,3,130,0,1,2,0,1,4,3684,1,136,0,3,1,0,10,2,0,1,2,0,26,2,0,1,1,0,1,165,0,1,4,0,1,1,3,1,165,110,1,1,0,1,196,99,13,1,0,3,206,69,3,183,179,260,1,0,5,2,0,35,175,0,59,184,0,1,197,0,30,203,0,53,217,0,75,219,0,231,229,0,30,231,210,16,1,0,4,206,161,59,1,0,12,206,1671,3,1,0,3,1,0,4,2,0,1,179,0,2,190,1,3,1,1,5,1,0,124,2,0,2,187,1,4,1,0,2,179,0,1,1,0,1,190,6,1,4,320,1,1,393,200,1,0,26,214,0,1,1,0,3,2,112,194,1,0,55,2,0,6,163,0,520,187,0,65,188,0,9,210,0,12166,223,0,1,241,123,94,1,0,1,2,0,2,127,78,191,1,481,3,1,0,17,136,335,1,115,200,3,1,0,1,250,230,3,1,0,1,257,0,1,150,4,1,1],[3250,4,1,22,6,1,2,22,1,0,74,2,0,2,175,0,2,1,1,2,1,0,5,1,0,48,2,4,2,156,0,1,125,0,1,2,1,1,86,0,1,150,2,2,1,1,5,1,0,1,2,11,3,1,0,13,2,0,1,1,0,12,2,2,1,2,25,1,1,0,1,12,0,1,1,0,1,1,1,1,1,0,1,1,0,1,1,0,1,22,0,3,1,0,31,24,0,1,1,1,4,1,0,4,44,0,1,49,0,1,53,0,1,1,0,1,57,0,35,59,38,19,1,309,1,2,0,1,1,1,1,1,0,2,132,1,1,3,0,1,4,0,1,12,0,2,125,0,2,131,0,1,132,0,1,2,3688,1,1,0,2,1,0,8,2,0,1,262,0,26,163,1,1,1,5,1,1,223,1,1,72,1,1,0,1,2,0,1,175,435,3,1,0,1,240,0,3,1,0,2,2,20,11,1,0,4,206,21,38,1,52,25,1,0,7,206,15,60,1,35,66,1,0,130,2,0,30,1,448,1,1,0,1,4,1689,4,1,0,1,1,0,2,1,3,1,136,2,4,1,0,2,1,0,122,2,0,2,188,5,2,1,884,1,1,0,38,243,28,1,1,0,1,2,211,62,1,0,33,136,0,3,1,0,9,2,0,43,210,1,5,1,48,67,1,0,83,2,0,309,188,0,13,241,64,1,241,27,78,1,0,1,195,0,12069,210,168,1,1,0,33,199,0,16,214,0,1,1,0,1,1,0,1,2,204,13,1,0,52,193,1274,1,1,0,1,1,4,1,136],[3250,4,1,27,1,1,12,11,1,0,1,115,0,6,1,0,67,2,0,1,225,1,1,1,0,2,1,6,2,1,0,2,1,0,46,2,4,2,1,0,1,1,0,1,133,1,1,142,0,1,93,7,3,1,0,1,2,14,2,1,0,11,2,1,1,1,0,11,2,2,1,2,27,1,15,0,1,1,1,1,1,0,1,1,0,1,1,0,1,6,0,3,1,0,1,1,0,29,2,0,1,6,0,1,1,1,1,1,0,2,3,0,1,12,0,4,1,0,1,1,0,1,54,1,1,58,0,2,60,0,33,62,38,1,1,0,18,89,309,1,2,2,1,115,0,2,133,4,2,126,0,1,1,0,1,144,0,1,133,0,1,2,3691,3,1,0,5,2,0,1,2,1,3,1,0,19,2,0,3,183,1,1,136,5,1,1,296,1,1,0,1,192,442,1,1,0,2,1,170,1,115,144,39,1,0,58,1,0,19,182,0,53,232,2172,1,1,2,1,193,11,1,182,0,4,1,0,112,2,0,6,205,7,1,4,0,1,199,951,1,1,0,1,2,241,22,1,0,10,136,35,1,1,0,9,205,1,42,2,121,83,1,303,5,1,0,1,241,272,383,1,0,11561,2,0,37,195,218,1,1,0,1,1,0,1,229,1543,1,1,0,1,4],[3251,3,1,59,8,1,0,58,2,0,1,1,14,6,1,0,40,2,4,1,1,0,1,158,1,1,134,1,1,143,0,1,1,10,1,2,15,1,1,0,11,2,2,11,172,2,1,2,33,1,7,3,1,1,0,29,2,0,1,7,6,1,1,0,2,3,0,1,45,0,1,1,0,1,1,1,1,1,0,1,1,0,1,61,0,17,63,0,1,72,0,15,73,38,1,3,0,16,90,0,2,104,309,1,1,3,2,134,4,2,127,0,1,1,0,1,145,0,1,134,0,1,1,3691,3,1,0,2,1,0,2,2,0,1,175,0,1,2,2,2,1,0,3,1,0,15,2,0,1,175,0,2,1,0,1,2,305,1,1,3119,2,1,1,111,172,0,1,1,0,4,2,0,1,195,961,1,1,309,7,2,0,2,195,1,9,1,0,31,173,0,1,189,0,1,215,508,3,1,0,1,240,351,305,1,0,2101,1,0,36,45,0,95,136,0,9282,173,0,17,189,0,24,215,0,1,237,0,4,244,0,1,245,13,16,1,0,1,206,0,7,226,220,1,246,1543,1,1],[3318,2,1,0,1,136,1,11,1,0,46,2,0,1,1,15,5,1,0,2,1,0,37,2,0,1,168,7,1,2,1,1,1,0,1,1,10,1,1,16,11,2,2,1,1,0,10,2,2,1,260,33,1,1,4,29,25,0,1,1,11,1,15,1,1,1,0,1,1,0,1,1,0,17,64,0,1,1,0,15,74,39,4,1,0,12,91,0,1,1,0,1,105,309,1,1,3,2,135,4,1,1,0,1,128,1,1,1,0,1,135,0,1,1,3695,1,136,0,1,1,0,1,2,1,1,2,5,2,1,0,4,1,0,11,2,2,1,171,0,1,1,305,1,1,3122,4,1,0,104,2,0,3,195,1,4,173,962,1,199,309,2,1,0,5,173,0,2,1,12799,2,1,3,5,1,220,1,247],[3319,1,136,7,6,1,0,5,1,0,40,2,0,1,157,19,2,136,0,2,1,0,1,1,0,36,2,0,1,1,7,1,109,1,1,1,11,1,1,16,11,172,3,1,1,0,9,173,2,1,1,33,1,1,4,29,2,0,1,1,15,1,1,0,17,50,0,1,1,0,12,2,0,3,80,39,1,1,0,2,3,0,1,12,0,1,1,0,11,92,0,1,1,0,1,106,313,2,109,4,1,1,0,1,1,2,1,109,3698,1,2,1,1,2,12,2,1,0,8,2,3432,3,1,0,1,136,0,11,1,0,2,45,0,2,136,0,89,173,0,3,1,1285,1,1,12804,4,1,0,1,4,220,1,1],[3337,1,1,0,1,1,0,39,2,0,1,1,24,2,1,0,18,2,0,16,172,0,1,1,7,1,2,30,11,2,15,1,115,38,29,2,17,17,65,1,12,2,0,2,1,0,1,81,43,1,38,0,10,93,0,1,102,1,1,107,313,2,2,5,1,129,2,1,1,3700,1,1,14,4,1,0,4,2,3540,2,1,0,1,136,14315,1,4],[3338,1,1,2,29,1,0,7,2,0,1,159,0,1,136,25,1,1,0,18,1,0,16,2,8,1,1,30,3,1,0,7,173,0,1,175,54,5,1,0,24,26,17,17,66,1,1,1,0,11,75,0,2,3,0,1,82,44,3,1,0,2,2,0,5,96,0,1,103,1,1,108,313,1,1,0,1,151,8,1,136,3700,1,1,17,1,1,0,4,1],[3343,27,1,1,5,1,0,1,159,0,1,1,28,17,1,0,5,1,0,11,173,8,1,1,32,1,1,62,5,1,0,24,2,17,17,2,1,1,1,0,11,2,2,1,1,44,1,1,0,1,12,0,1,15,0,2,2,0,1,1,0,4,97,0,1,1,1,1,109,313,1,1,0,1,152],[3375,1,1,0,1,1,50,1,1,120,24,2,17,17,67,2,11,2,2,1,3,47,1,1,0,1,94,0,1,1,0,4,98,2,1,110,314,1,1],[3376,1,1,171,5,1,0,1,27,0,10,28,0,8,35,17,17,2,2,1,1,0,10,76,50,1,1,0,1,2,1,1,1,0,2,99,0,1,100,2,1,1,314,1,1],[3548,5,1,0,1,2,0,10,2,0,8,2,17,17,2,2,1,1,0,10,2,51,1,2,1,1,3,0,2,1,0,1,101,2,1,1],[3553,1,2,0,10,2,0,8,2,17,7,1,0,9,68,0,1,71,3,10,2,51,1,95,2,2,38,0,1,1],[3553,1,1,0,1,1,0,9,29,0,2,1,0,6,36,17,7,1,0,9,2,0,1,1,3,2,1,0,8,77,51,1,1,4,1,1],[3553,1,1,0,1,1,0,9,2,0,2,1,0,3,1,0,3,2,24,9,2,0,1,1,3,2,1,0,1,1,0,7,2,51,1,1],[3555,9,2,2,2,1,0,1,38,0,3,2,24,4,1,0,2,69,0,3,70,6,1,4,0,7,2],[3555,2,1,0,7,30,5,1,1,0,2,37,24,4,1,0,2,2,0,3,1,7,3,1,0,4,78],[3555,2,1,0,6,2,0,1,33,5,1,1,0,2,1,28,2,2,0,2,3,0,1,12,7,3,1,0,4,2],[3557,6,2,0,1,2,6,1,1,0,1,4,28,2,1,13,4,2],[3557,4,1,0,2,31,0,1,2,36,2,1,13,2,1,0,2,79],[3557,4,1,0,1,1,0,1,32,0,1,34,51,2,1,0,2,2],[3561,1,1,0,1,1,0,1,2,53,2,2],[3562,1,1,0,1,2,53,2,1],[3563,1,1,53,2,1],[3563,1,1]];
+numTicks = 27135;
+
+let rangeMin = 0;
+let rangeMax = 1;
+let topLevel = 0;
+let query = '';
+let graphWidth, pxPerTick;
+
+const pxPerLevel = 18;
+const collapseThreshold = 5;
+const hideThreshold = 0.5;
+const labelThreshold = 20;
+
+highlightEl.style.height = pxPerLevel + 'px';
+
+if (levels) {
+    init();
+}
+
+function init() {
+    document.body.classList.add('loaded');
+
+    // delta-decode bar positions
+    for (const level of levels) {
+        let prev = 0;
+        for (let i = 0; i < level.length; i += 3) {
+            level[i] += prev;
+            prev = level[i] + level[i + 1];
+        }
+    }
+
+    updateFromHash();
+    render();
+}
+
+window.onhashchange = () => {
+    updateFromHash();
+    render();
+};
+canvas.onclick = (e) => {
+    const {i, j} = xyToBar(e.offsetX, e.offsetY);
+    if (j === -1) return;
+    window.location.hash = [i, j].join(',');
+    removeHover();
+};
+document.getElementById('reset').onclick = () => {
+    searchEl.value = query = '';
+    window.location.hash = '';
+    render();
+};
+window.onresize = render;
+
+searchEl.oninput = (e) => {
+    query = e.target.value;
+    render();
+};
+
+function updateFromHash() {
+    const [i, j] = window.location.hash.substr(1).split(',').map(Number);
+
+    if (!isNaN(i) && !isNaN(j)) {
+        topLevel = i;
+        rangeMin = levels[i][j] / numTicks;
+        rangeMax = (levels[i][j] + levels[i][j + 1]) / numTicks;
+    } else {
+        topLevel = 0;
+        rangeMin = 0;
+        rangeMax = 1;
+    }
+}
+
+function tickToX(i) {
+    return (i - numTicks * rangeMin) * pxPerTick;
+}
+
+function render() {
+    if (!levels) return;
+
+    graphWidth = canvas.width = canvas.clientWidth;
+    canvas.height = pxPerLevel * (levels.length - topLevel);
+    canvas.style.height = canvas.height + 'px';
+
+    if (devicePixelRatio > 1) {
+        canvas.width *= 2;
+        canvas.height *= 2;
+        ctx.scale(2, 2);
+    }
+
+    pxPerTick = graphWidth / numTicks / (rangeMax - rangeMin);
+
+    ctx.textBaseline = 'middle';
+    ctx.font = '10px Tahoma, sans-serif';
+    ctx.strokeStyle = 'white';
+
+    for (let i = 0; i < levels.length - topLevel; i++) {
+        const level = levels[topLevel + i];
+
+        for (let j = 0; j < level.length; j += 3) {
+            const barIndex = level[j];
+            const x = tickToX(barIndex);
+            const y = i * pxPerLevel;
+            let numBarTicks = level[j + 1];
+
+            const inQuery = query && (names[level[j + 2]].indexOf(query) >= 0) || false;
+
+            // merge very small blocks into big "collapsed" ones for performance
+            const collapsed = numBarTicks * pxPerTick <= collapseThreshold;
+            if (collapsed) {
+                while (
+                    j < level.length - 3 &&
+                    barIndex + numBarTicks === level[j + 3] &&
+                    level[j + 4] * pxPerTick <= collapseThreshold &&
+                    (inQuery === (query && (names[level[j + 5]].indexOf(query) >= 0) || false))
+                ) {
+                    j += 3;
+                    numBarTicks += level[j + 1];
+                }
+            }
+
+            const sw = numBarTicks * pxPerTick - (collapsed ? 0 : 0.5);
+            const sh = pxPerLevel - 0.5;
+
+            if (x < -1 || x + sw > graphWidth + 1 || sw < hideThreshold) continue;
+
+            ctx.beginPath();
+            ctx.rect(x, y, sw, sh);
+
+            const ratio = numBarTicks / numTicks;
+
+            if (!collapsed) {
+                ctx.stroke();
+                const intensity = Math.min(1, ratio * Math.pow(1.16, i) / (rangeMax - rangeMin));
+                const h = 50 - 50 * intensity;
+                const l = 65 + 7 * intensity;
+                ctx.fillStyle = inQuery ? 'lightgreen' : `hsl(${h}, 100%, ${l}%)`;
+            } else {
+                ctx.fillStyle = inQuery ? 'lightgreen' : '#eee';
+            }
+            ctx.fill();
+
+            if (!collapsed && sw >= labelThreshold) {
+
+                const percent = Math.round(10000 * ratio) / 100;
+                const name = `${names[level[j + 2]]} (${percent}%, ${numBarTicks} samples)`;
+
+                ctx.save();
+                ctx.clip();
+                ctx.fillStyle = 'black';
+                ctx.fillText(name, Math.max(x, 0) + 1, y + sh / 2);
+                ctx.restore();
+            }
+        }
+    }
+}
+
+// pixel coordinates to bar coordinates in the levels array
+function xyToBar(x, y) {
+    const i = Math.floor(y / pxPerLevel) + topLevel;
+    const j = binarySearchLevel(x, levels[i]);
+    return {i, j};
+}
+
+// binary search of a block in a stack level
+function binarySearchLevel(x, level) {
+    let i = 0;
+    let j = level.length - 3;
+    while (i <= j) {
+        const m = 3 * ((i / 3 + j / 3) >> 1);
+        const x0 = tickToX(level[m]);
+        const x1 = tickToX(level[m] + level[m + 1]);
+        if (x0 <= x && x1 >= x) {
+            return x1 - x0 > collapseThreshold ? m : -1;
+        }
+        if (x0 > x) {
+            j = m - 3;
+        } else {
+            i = m + 3;
+        }
+    }
+    return -1;
+}
+
+if (window.orientation === undefined) {
+    canvas.onmousemove = addHover;
+    canvas.onmouseout = window.onscroll = removeHover;
+}
+
+function removeHover() {
+    canvas.style.cursor = '';
+    highlightEl.style.display = 'none';
+    tooltipEl.style.display = 'none';
+}
+
+function addHover(e) {
+    const {i, j} = xyToBar(e.offsetX, e.offsetY);
+
+    if (j === -1 || e.offsetX < 0 || e.offsetX > graphWidth) {
+        removeHover();
+        return;
+    }
+
+    canvas.style.cursor = 'pointer';
+
+    const level = levels[i];
+    const x = tickToX(level[j]);
+    const y = (i - topLevel) * pxPerLevel;
+    const sw = tickToX(level[j] + level[j + 1]) - x;
+
+    highlightEl.style.display = 'block';
+    highlightEl.style.left = x + 'px';
+    highlightEl.style.top = (canvas.offsetTop + y) + 'px';
+    highlightEl.style.width = sw + 'px';
+
+    const numBarTicks = level[j + 1];
+    const percent = Math.round(10000 * numBarTicks / numTicks) / 100;
+    const time = `<span class="time">(${percent}%, ${numBarTicks} samples)</span>`;
+    let content = names[level[j + 2]];
+    if (content[0] !== '(') content = content.replace(' ', ` ${time}<br><span class="path">`) + '</span>';
+    else content += ` ${time}`;
+
+    tooltipEl.innerHTML = content;
+    tooltipEl.style.display = 'block';
+    tooltipEl.style.left = (Math.min(e.offsetX + 15 + tooltipEl.clientWidth, graphWidth) - tooltipEl.clientWidth) + 'px';
+    tooltipEl.style.top = (canvas.offsetTop + e.offsetY + 12) + 'px';
+}
+
+// (function frame() { if (levels) render(); requestAnimationFrame(frame); })();
+
+
+</script>
+</body>
+</html>
