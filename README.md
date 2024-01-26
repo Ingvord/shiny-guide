@@ -60,4 +60,4 @@ Interestings fact, if I replace express with vanilla `http` module, see e.g. [si
 
 This stresses my idea of reducing number of libraries and frameworks being a good thing :)
 
-![](figures/Screenshot_20240126_133138.png)
+![](figures/Screenshot_20240126_133603.png)
