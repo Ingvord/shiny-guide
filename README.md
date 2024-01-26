@@ -59,3 +59,5 @@ Interestings fact, if I replace express with vanilla `http` module, see e.g. [si
 ![](figures/simple_rps_vs_threads.png)
 
 This stresses my idea of reducing number of libraries and frameworks being a good thing :)
+
+![](figures/Screenshot_20240126_133138.png)
